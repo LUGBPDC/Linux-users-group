@@ -1,3 +1,4 @@
+<!-- Ps1.svelte  -->
 <script>
   import { theme } from '../stores/theme';
   let hostname = window.location.hostname;

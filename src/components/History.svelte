@@ -5,21 +5,19 @@
 </script>
 
 {#each $history as { command, outputs }}
-  <div style={`color: ${$theme.foreground}`}>
-    <div class="flex flex-col md:flex-row">
+  <div class="mb-2">
+    <div class="flex flex-col md:flex-row items-start">
       <Ps1 />
-
-      <div class="flex">
-        <p class="visible md:hidden">❯</p>
-
-        <p class="px-2">{command}</p>
+      
+      <div class="flex items-center ml-2">
+        <p class="visible md:hidden mr-2" style={`color: ${$theme.white}`}>❯</p>
+        <p class="font-mono" style={`color: ${$theme.foreground}`}>{command}</p>
       </div>
     </div>
 
     {#each outputs as output}
-      <p class="whitespace-pre">
-        {output}
-      </p>
+      <pre class="whitespace-pre-wrap font-mono text-sm mt-1 ml-0 md:ml-4" 
+           style={`color: ${$theme.foreground}`}>{output}</pre>
     {/each}
   </div>
 {/each}
