@@ -20,6 +20,8 @@ export interface Theme {
   brightMagenta: string;
   brightCyan: string;
   brightWhite: string;
+  orange: string;
+  brightOrange: string;
 }
 
 const ubuntuClassicTheme: Theme = {

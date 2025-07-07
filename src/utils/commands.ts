@@ -55,14 +55,19 @@ Fun Commands:
   matrix        - Enter the matrix
   joke          - Random programming joke
 
+AI Assistant:
+  ai            - Toggle AI navigation assistant
+
 Navigation:
   Use arrow keys to navigate command history
   Tab for autocompletion
   Ctrl+L to clear screen
+  Ctrl+K to toggle AI assistant
     `;
   },
 
   clear: () => {
+    // This is handled specially in Input.svelte
     return '';
   },
 
@@ -127,115 +132,6 @@ drwxr-xr-x  2 guest guest   64 ${new Date().toLocaleDateString()} ${new Date().t
     return files.join('  ');
   },
 
-  neofetch: () => {
-    const browserInfo = getBrowserInfo();
-    const systemInfo = getSystemInfo();
-    const memoryInfo = getMemoryInfo();
-    
-    return `                    .-/+oossssoo+/-.               guest@${window.location.hostname}
-                \`:+ssssssssssssssssss+:\`           ----------------
-              -+ssssssssssssssssssyyssss+-         OS: ${systemInfo.os}
-            .ossssssssssssssssssdMMMNysssso.       Host: ${systemInfo.host}
-           /ssssssssssshdmmNNmmyNMMMMhssssss/      Kernel: ${systemInfo.kernel}
-          +ssssssssshmydMMMMMMMNddddyssssssss+     Uptime: ${getUptimeString()}
-         /sssssssshNMMMyhhyyyyhmNMMMNhssssssss/    Packages: ${Math.floor(Math.random() * 3000) + 1000} (web)
-        .ssssssssdMMMNhsssssssssshNMMMdssssssss.   Shell: ${browserInfo.name} ${browserInfo.version}
-        +sssshhhyNMMNyssssssssssssyNMMMysssssss+   Resolution: ${screen.width}x${screen.height}
-        ossyNMMMNyMMhsssssssssssssshmmmhssssssso   DE: Web Browser Environment
-        ossyNMMMNyMMhsssssssssssssshmmmhssssssso   WM: ${browserInfo.name}
-        +sssshhhyNMMNyssssssssssssyNMMMysssssss+   Theme: Ubuntu-orange-dark
-        .ssssssssdMMMNhsssssssssshNMMMdssssssss.   Terminal: lugbpdc-terminal
-         /sssssssshNMMMyhhyyyyhdNMMMNhssssssss/    CPU: ${systemInfo.cpu}
-          +sssssssssdmydMMMMMMMMddddyssssssss+     GPU: ${systemInfo.gpu}
-           /ssssssssssshdmNNNNmyNMMMMhssssss/      Memory: ${memoryInfo.used}MiB / ${memoryInfo.total}MiB
-            .ossssssssssssssssssdMMMNysssso.       Browser: ${browserInfo.name} ${browserInfo.version}
-              -+sssssssssssssssssyyyssss+-         Platform: ${navigator.platform}
-                \`:+ssssssssssssssssss+:\`           Language: ${navigator.language}
-                    .-/+oossssoo+/-.               Timezone: ${Intl.DateTimeFormat().resolvedOptions().timeZone}`;
-  },
-
-  lscpu: () => {
-    const cpuInfo = getCPUInfo();
-    return `Architecture:        ${getArchitecture()}
-CPU op-mode(s):      32-bit, 64-bit
-Byte Order:          Little Endian
-CPU(s):              ${cpuInfo.cores}
-Thread(s) per core:  ${cpuInfo.threads}
-Core(s) per socket:  ${cpuInfo.cores}
-Socket(s):           1
-Vendor ID:           ${cpuInfo.vendor}
-CPU family:          ${cpuInfo.family}
-Model:               ${cpuInfo.model}
-Model name:          ${cpuInfo.name}
-CPU MHz:             ${cpuInfo.speed}
-L1d cache:           32K
-L1i cache:           32K
-L2 cache:            256K
-L3 cache:            8192K`;
-  },
-
-  lsmem: () => {
-    const memory = getMemoryInfo();
-    return `RANGE                                 SIZE  STATE REMOVABLE BLOCK
-0x0000000000000000-0x000000007fffffff  ${memory.total}G online        no     0
-
-Memory block size:       128M
-Total online memory:     ${memory.total}G
-Total offline memory:    0B`;
-  },
-
-  free: () => {
-    const memory = getMemoryInfo();
-    const used = memory.used;
-    const free = memory.total - used;
-    const available = free + Math.floor(memory.total * 0.1); // Simulate cache/buffers
-    
-    return `              total        used        free      shared  buff/cache   available
-Mem:        ${memory.total * 1024}     ${used * 1024}     ${free * 1024}           0         ${Math.floor(memory.total * 0.1) * 1024}     ${available * 1024}
-Swap:              0           0           0`;
-  },
-
-  df: () => {
-    const storage = getStorageInfo();
-    return `Filesystem     1K-blocks    Used Available Use% Mounted on
-/dev/sda1       ${storage.total}  ${storage.used}  ${storage.available}  ${storage.usedPercent}% /
-tmpfs             ${Math.floor(getMemoryInfo().total * 512)}       0   ${Math.floor(getMemoryInfo().total * 512)}   0% /dev/shm
-tmpfs             ${Math.floor(getMemoryInfo().total * 102)}    1024   ${Math.floor(getMemoryInfo().total * 102) - 1024}   1% /run`;
-  },
-
-  lsusb: () => {
-    return `Bus 001 Device 001: ID 1d6b:0002 Linux Foundation 2.0 root hub
-Bus 001 Device 002: ID 8087:0024 Intel Corp. Integrated Rate Matching Hub
-Bus 001 Device 003: ID 1bcf:2883 Sunplus Innovation Technology Inc. Laptop_Integrated_Webcam_HD
-Bus 002 Device 001: ID 1d6b:0003 Linux Foundation 3.0 root hub
-Bus 002 Device 002: ID 0781:5567 SanDisk Corp. Cruzer Blade`;
-  },
-
-  lspci: () => {
-    const systemInfo = getSystemInfo();
-    return `00:00.0 Host bridge: Intel Corporation Device 0000
-00:02.0 VGA compatible controller: ${systemInfo.gpu}
-00:14.0 USB controller: Intel Corporation Device 0000
-00:16.0 Communication controller: Intel Corporation Device 0000
-00:17.0 SATA controller: Intel Corporation Device 0000
-00:1c.0 PCI bridge: Intel Corporation Device 0000
-00:1f.0 ISA bridge: Intel Corporation Device 0000
-00:1f.3 Audio device: Intel Corporation Device 0000`;
-  },
-
-  hostnamectl: () => {
-    const systemInfo = getSystemInfo();
-    return `   Static hostname: ${window.location.hostname}
-         Icon name: computer-laptop
-           Chassis: laptop
-        Machine ID: ${generateMachineId()}
-           Boot ID: ${generateBootId()}
-  Operating System: ${systemInfo.os}
-            Kernel: ${systemInfo.kernel}
-      Architecture: ${getArchitecture()}`;
-  },
-
-  // Keep all the existing LUG commands...
   about: () => {
     return `Linux Users Group - BITS Pilani Dubai Campus
 
@@ -446,6 +342,186 @@ Membership Benefits:
    • Active contributor to major FOSS projects`;
   },
 
+  neofetch: () => {
+    const browserInfo = getBrowserInfo();
+    const systemInfo = getSystemInfo();
+    const memoryInfo = getMemoryInfo();
+    
+    return `                    .-/+oossssoo+/-.               guest@${window.location.hostname}
+                \`:+ssssssssssssssssss+:\`           ----------------
+              -+ssssssssssssssssssyyssss+-         OS: ${systemInfo.os}
+            .ossssssssssssssssssdMMMNysssso.       Host: ${systemInfo.host}
+           /ssssssssssshdmmNNmmyNMMMMhssssss/      Kernel: ${systemInfo.kernel}
+          +ssssssssshmydMMMMMMMNddddyssssssss+     Uptime: ${getUptimeString()}
+         /sssssssshNMMMyhhyyyyhmNMMMNhssssssss/    Packages: ${Math.floor(Math.random() * 3000) + 1000} (web)
+        .ssssssssdMMMNhsssssssssshNMMMdssssssss.   Shell: ${browserInfo.name} ${browserInfo.version}
+        +sssshhhyNMMNyssssssssssssyNMMMysssssss+   Resolution: ${screen.width}x${screen.height}
+        ossyNMMMNyMMhsssssssssssssshmmmhssssssso   DE: Web Browser Environment
+        ossyNMMMNyMMhsssssssssssssshmmmhssssssso   WM: ${browserInfo.name}
+        +sssshhhyNMMNyssssssssssssyNMMMysssssss+   Theme: Ubuntu-orange-dark
+        .ssssssssdMMMNhsssssssssshNMMMdssssssss.   Terminal: lugbpdc-terminal
+         /sssssssshNMMMyhhyyyyhdNMMMNhssssssss/    CPU: ${systemInfo.cpu}
+          +sssssssssdmydMMMMMMMMddddyssssssss+     GPU: ${systemInfo.gpu}
+           /ssssssssssshdmNNNNmyNMMMMhssssss/      Memory: ${memoryInfo.used}MiB / ${memoryInfo.total}MiB
+            .ossssssssssssssssssdMMMNysssso.       Browser: ${browserInfo.name} ${browserInfo.version}
+              -+sssssssssssssssssyyyssss+-         Platform: ${navigator.platform}
+                \`:+ssssssssssssssssss+:\`           Language: ${navigator.language}
+                    .-/+oossssoo+/-.               Timezone: ${Intl.DateTimeFormat().resolvedOptions().timeZone}`;
+  },
+
+  lscpu: () => {
+    const cpuInfo = getCPUInfo();
+    return `Architecture:        ${getArchitecture()}
+CPU op-mode(s):      32-bit, 64-bit
+Byte Order:          Little Endian
+CPU(s):              ${cpuInfo.cores}
+Thread(s) per core:  ${cpuInfo.threads}
+Core(s) per socket:  ${cpuInfo.cores}
+Socket(s):           1
+Vendor ID:           ${cpuInfo.vendor}
+CPU family:          ${cpuInfo.family}
+Model:               ${cpuInfo.model}
+Model name:          ${cpuInfo.name}
+CPU MHz:             ${cpuInfo.speed}
+L1d cache:           32K
+L1i cache:           32K
+L2 cache:            256K
+L3 cache:            8192K`;
+  },
+
+  lsmem: () => {
+    const memory = getMemoryInfo();
+    return `RANGE                                 SIZE  STATE REMOVABLE BLOCK
+0x0000000000000000-0x000000007fffffff  ${memory.total}G online        no     0
+
+Memory block size:       128M
+Total online memory:     ${memory.total}G
+Total offline memory:    0B`;
+  },
+
+  free: () => {
+    const memory = getMemoryInfo();
+    const used = memory.used;
+    const free = memory.total - used;
+    const available = free + Math.floor(memory.total * 0.1);
+    
+    return `              total        used        free      shared  buff/cache   available
+Mem:        ${memory.total * 1024}     ${used * 1024}     ${free * 1024}           0         ${Math.floor(memory.total * 0.1) * 1024}     ${available * 1024}
+Swap:              0           0           0`;
+  },
+
+  df: () => {
+    const storage = getStorageInfo();
+    return `Filesystem     1K-blocks    Used Available Use% Mounted on
+/dev/sda1       ${storage.total}  ${storage.used}  ${storage.available}  ${storage.usedPercent}% /
+tmpfs             ${Math.floor(getMemoryInfo().total * 512)}       0   ${Math.floor(getMemoryInfo().total * 512)}   0% /dev/shm
+tmpfs             ${Math.floor(getMemoryInfo().total * 102)}    1024   ${Math.floor(getMemoryInfo().total * 102) - 1024}   1% /run`;
+  },
+
+  lsusb: () => {
+    return `Bus 001 Device 001: ID 1d6b:0002 Linux Foundation 2.0 root hub
+Bus 001 Device 002: ID 8087:0024 Intel Corp. Integrated Rate Matching Hub
+Bus 001 Device 003: ID 1bcf:2883 Sunplus Innovation Technology Inc. Laptop_Integrated_Webcam_HD
+Bus 002 Device 001: ID 1d6b:0003 Linux Foundation 3.0 root hub
+Bus 002 Device 002: ID 0781:5567 SanDisk Corp. Cruzer Blade`;
+  },
+
+  lspci: () => {
+    const systemInfo = getSystemInfo();
+    return `00:00.0 Host bridge: Intel Corporation Device 0000
+00:02.0 VGA compatible controller: ${systemInfo.gpu}
+00:14.0 USB controller: Intel Corporation Device 0000
+00:16.0 Communication controller: Intel Corporation Device 0000
+00:17.0 SATA controller: Intel Corporation Device 0000
+00:1c.0 PCI bridge: Intel Corporation Device 0000
+00:1f.0 ISA bridge: Intel Corporation Device 0000
+00:1f.3 Audio device: Intel Corporation Device 0000`;
+  },
+
+  hostnamectl: () => {
+    const systemInfo = getSystemInfo();
+    return `   Static hostname: ${window.location.hostname}
+         Icon name: computer-laptop
+           Chassis: laptop
+        Machine ID: ${generateMachineId()}
+           Boot ID: ${generateBootId()}
+  Operating System: ${systemInfo.os}
+            Kernel: ${systemInfo.kernel}
+      Architecture: ${getArchitecture()}`;
+  },
+
+  ai: (args) => {
+  if (args && args.length > 0) {
+    const subcommand = args[0].toLowerCase();
+    
+    switch (subcommand) {
+      case 'help':
+        return `🤖 AI Assistant Help
+
+Usage: ai [command]
+
+Commands:
+  ai              - Toggle AI assistant
+  ai on/enable    - Enable AI assistant
+  ai off/disable  - Disable AI assistant  
+  ai persistent   - Toggle persistent mode
+  ai help         - Show this help
+
+Persistent Mode:
+  When enabled, AI assistant stays open after executing commands,
+  allowing you to ask multiple questions without reopening.`;
+      
+      case 'status':
+        return `🤖 AI Assistant Status
+
+Current State: Active
+Mode: Multi-query enabled
+Features:
+  ✓ Natural language command translation
+  ✓ Query history tracking
+  ✓ Quick action buttons
+  ✓ Command validation
+  ✓ Persistent session support`;
+      
+      default:
+        return `🤖 AI Assistant
+
+Unknown subcommand: ${subcommand}
+Type 'ai help' for available commands.`;
+    }
+  }
+  
+  return `🤖 LUG Navigation Assistant
+
+The AI assistant helps you navigate the LUG BPDC website using natural language.
+
+🎯 Available Navigation Commands:
+   • about - Learn about LUG BPDC
+   • events - View upcoming events and workshops
+   • projects - See current projects
+   • members - Meet the core team
+   • contact - Get contact information
+   • join - Learn how to join LUG
+   • resources - Access learning resources
+   • achievements - View our accomplishments
+
+🔧 Enhanced Features:
+   • Multiple queries in one session
+   • Query history and reuse
+   • Quick action buttons
+   • Persistent mode available
+
+💡 Usage Examples:
+   "Tell me about LUG" → about
+   "What events are coming up?" → events
+   "How can I join?" → join
+   "Show me the team" → members
+
+🔒 Security: AI only suggests commands available in this terminal.
+Commands: 'ai on', 'ai persistent', 'ai help' | Toggle: Ctrl+K`;
+},
+
+
   cowsay: (args) => {
     const message = args ? args.join(' ') : 'Hello from LUG BPDC!';
     const border = '_'.repeat(message.length + 2);
@@ -586,23 +662,21 @@ function getCPUInfo() {
 }
 
 function getMemoryInfo() {
-  // Estimate based on device capabilities
   const deviceMemory = (navigator as any).deviceMemory || 8;
-  const total = deviceMemory * 1024; // Convert to MB
-  const used = Math.floor(total * (0.3 + Math.random() * 0.4)); // 30-70% usage
+  const total = deviceMemory * 1024;
+  const used = Math.floor(total * (0.3 + Math.random() * 0.4));
   
   return {
-    total: Math.floor(total / 1024), // Convert to GB for display
-    used: Math.floor(used / 1024),   // Convert to GB for display
+    total: Math.floor(total / 1024),
+    used: Math.floor(used / 1024),
     totalMB: total,
     usedMB: used
   };
 }
 
 function getStorageInfo() {
-  // Estimate storage (can't get real values from browser for security)
-  const total = Math.floor(Math.random() * 500000) + 250000; // 250-750GB
-  const used = Math.floor(total * (0.2 + Math.random() * 0.6)); // 20-80% usage
+  const total = Math.floor(Math.random() * 500000) + 250000;
+  const used = Math.floor(total * (0.2 + Math.random() * 0.6));
   const available = total - used;
   const usedPercent = Math.floor((used / total) * 100);
   
@@ -637,7 +711,7 @@ function getArchitecture() {
   } else if (platform.includes('win32') || platform.includes('i386')) {
     return 'i386';
   }
-  return 'x86_64'; // Default assumption
+  return 'x86_64';
 }
 
 function getBrowserKernel() {
