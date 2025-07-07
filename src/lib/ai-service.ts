@@ -15,11 +15,11 @@ class OllamaAIService {
   constructor() {
     this.baseUrl = import.meta.env.VITE_AI_API_URL || 'http://localhost:11434';
     this.model = import.meta.env.VITE_AI_MODEL || 'llama3.2:3b';
-    // Get only the commands defined in commands.ts
     this.availableCommands = Object.keys(commands);
   }
 
   async translateCommand(naturalLanguage: string): Promise<AIResponse> {
+    // No rate limiting, no cooldowns, no restrictions
     const prompt = this.buildRestrictedPrompt(naturalLanguage);
     
     try {
@@ -49,6 +49,7 @@ class OllamaAIService {
       return this.parseAndValidateResponse(data.response);
     } catch (error) {
       console.error('AI Service Error:', error);
+      // Always provide fallback - never block usage
       return this.getFallbackResponse(naturalLanguage);
     }
   }
@@ -56,13 +57,14 @@ class OllamaAIService {
   private buildRestrictedPrompt(input: string): string {
     const commandList = this.availableCommands.join(', ');
     
-    return `You are a navigation assistant for the LUG BPDC website terminal. You can ONLY suggest commands that exist in this terminal.
+    return `You are a navigation assistant for the LUG BPDC website terminal. You can suggest commands from this list.
 
-AVAILABLE COMMANDS ONLY: ${commandList}
+AVAILABLE COMMANDS: ${commandList}
 
 User request: "${input}"
 
-You must ONLY respond with commands from the available list above. Do not suggest any other commands.
+Respond with JSON format:
+{"command": "exact_command_from_list", "explanation": "what this command does", "confidence": 0.95, "needsConfirmation": false}
 
 Command descriptions:
 - help: Show available commands
@@ -85,11 +87,6 @@ Command descriptions:
 - joke: Programming joke
 - matrix: Matrix effect
 
-Respond ONLY with valid JSON in this exact format:
-{"command": "exact_command_from_list", "explanation": "what this command does", "confidence": 0.95, "needsConfirmation": false}
-
-If the user asks for something not available, suggest the closest available command or help.
-
 JSON only:`;
   }
 
@@ -102,12 +99,12 @@ JSON only:`;
       
       const parsed = JSON.parse(jsonMatch[0]);
       
-      // Validate that the suggested command exists in our commands
+      // Validate command exists, but don't block if it doesn't
       if (parsed.command && !this.availableCommands.includes(parsed.command)) {
         console.warn(`AI suggested invalid command: ${parsed.command}`);
         return {
           command: 'help',
-          explanation: `Command "${parsed.command}" is not available. Type 'help' to see available commands.`,
+          explanation: `"${parsed.command}" is not available. Showing help instead.`,
           confidence: 0.8,
           needsConfirmation: false
         };
@@ -117,13 +114,14 @@ JSON only:`;
         command: parsed.command || '',
         explanation: parsed.explanation || 'Command translated',
         confidence: Math.min(Math.max(parsed.confidence || 0.5, 0), 1),
-        needsConfirmation: parsed.needsConfirmation || false
+        needsConfirmation: false // Never require confirmation - unlimited usage
       };
     } catch (error) {
       console.error('Failed to parse AI response:', error);
+      // Always provide a working response
       return {
         command: 'help',
-        explanation: 'Could not understand the request. Type "help" to see available commands.',
+        explanation: 'Could not understand the request. Showing help.',
         confidence: 0.7,
         needsConfirmation: false
       };
@@ -133,26 +131,32 @@ JSON only:`;
   private getFallbackResponse(input: string): AIResponse {
     const lowerInput = input.toLowerCase();
     
-    // Map natural language to your specific commands
+    // Enhanced command mapping for better fallback
     const commandMap: Record<string, { cmd: string; desc: string; conf: number }> = {
-      // Navigation commands
-      'help': { cmd: 'help', desc: 'Shows available commands', conf: 0.9 },
-      'commands': { cmd: 'help', desc: 'Shows available commands', conf: 0.9 },
-      
       // LUG-specific commands
       'about': { cmd: 'about', desc: 'About LUG BPDC', conf: 0.9 },
       'info': { cmd: 'about', desc: 'Information about LUG BPDC', conf: 0.8 },
+      'information': { cmd: 'about', desc: 'Information about LUG BPDC', conf: 0.8 },
       'events': { cmd: 'events', desc: 'Shows upcoming events', conf: 0.9 },
       'workshops': { cmd: 'events', desc: 'Shows upcoming workshops and events', conf: 0.8 },
+      'upcoming': { cmd: 'events', desc: 'Shows upcoming events', conf: 0.8 },
       'projects': { cmd: 'projects', desc: 'Shows current projects', conf: 0.9 },
+      'project': { cmd: 'projects', desc: 'Shows current projects', conf: 0.9 },
       'members': { cmd: 'members', desc: 'Shows core team members', conf: 0.9 },
       'team': { cmd: 'members', desc: 'Shows team members', conf: 0.8 },
+      'people': { cmd: 'members', desc: 'Shows team members', conf: 0.8 },
       'contact': { cmd: 'contact', desc: 'Shows contact information', conf: 0.9 },
+      'reach': { cmd: 'contact', desc: 'Shows contact information', conf: 0.8 },
       'join': { cmd: 'join', desc: 'How to join LUG BPDC', conf: 0.9 },
+      'member': { cmd: 'join', desc: 'How to become a member', conf: 0.8 },
       'resources': { cmd: 'resources', desc: 'Learning resources', conf: 0.9 },
+      'learn': { cmd: 'resources', desc: 'Learning resources', conf: 0.8 },
       'achievements': { cmd: 'achievements', desc: 'Our achievements', conf: 0.9 },
+      'accomplishments': { cmd: 'achievements', desc: 'Our accomplishments', conf: 0.8 },
       
       // System commands
+      'help': { cmd: 'help', desc: 'Shows available commands', conf: 0.9 },
+      'commands': { cmd: 'help', desc: 'Shows available commands', conf: 0.9 },
       'clear': { cmd: 'clear', desc: 'Clears the screen', conf: 0.9 },
       'clean': { cmd: 'clear', desc: 'Cleans the screen', conf: 0.8 },
       'system': { cmd: 'neofetch', desc: 'Shows system information', conf: 0.8 },
@@ -169,6 +173,7 @@ JSON only:`;
       'fortune': { cmd: 'fortune', desc: 'Shows a random quote', conf: 0.9 },
       'quote': { cmd: 'fortune', desc: 'Shows a random quote', conf: 0.8 },
       'joke': { cmd: 'joke', desc: 'Shows a programming joke', conf: 0.9 },
+      'funny': { cmd: 'joke', desc: 'Shows a programming joke', conf: 0.8 },
       'matrix': { cmd: 'matrix', desc: 'Enter the matrix', conf: 0.9 }
     };
 
@@ -184,10 +189,10 @@ JSON only:`;
       }
     }
 
-    // Default fallback
+    // Default fallback - always provide something useful
     return {
       command: 'help',
-      explanation: 'Could not understand the request. Type "help" to see all available commands.',
+      explanation: 'Could not understand the request. Showing available commands.',
       confidence: 0.6,
       needsConfirmation: false
     };
@@ -202,7 +207,6 @@ JSON only:`;
     }
   }
 
-  // Method to get available commands for display
   getAvailableCommands(): string[] {
     return [...this.availableCommands];
   }

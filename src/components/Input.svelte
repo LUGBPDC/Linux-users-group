@@ -10,7 +10,6 @@
   let historyIndex = -1;
   let input: HTMLInputElement;
   let showAI = false;
-  let aiPersistent = false; // New flag for persistent AI
 
   onMount(() => {
     input.focus();
@@ -59,7 +58,6 @@
     } else if (event.ctrlKey && event.key === 'k') {
       event.preventDefault();
       showAI = !showAI;
-      aiPersistent = showAI; // Set persistent mode
     }
   };
 
@@ -75,38 +73,13 @@
       track(commandName, ...args);
     }
 
-    // Enhanced AI toggle command
+    // AI command - always enable, never disable automatically
     if (commandName === 'ai') {
-      if (args.length > 0) {
-        if (args[0] === 'on' || args[0] === 'enable') {
-          showAI = true;
-          aiPersistent = true;
-          $history = [...$history, { 
-            command: cmd, 
-            outputs: ['AI Assistant enabled and will stay open for multiple queries. Press Ctrl+K to toggle.'] 
-          }];
-        } else if (args[0] === 'off' || args[0] === 'disable') {
-          showAI = false;
-          aiPersistent = false;
-          $history = [...$history, { 
-            command: cmd, 
-            outputs: ['AI Assistant disabled.'] 
-          }];
-        } else if (args[0] === 'persistent') {
-          aiPersistent = !aiPersistent;
-          $history = [...$history, { 
-            command: cmd, 
-            outputs: [`AI Assistant ${aiPersistent ? 'will stay open' : 'will auto-close'} after commands.`] 
-          }];
-        }
-      } else {
-        showAI = !showAI;
-        aiPersistent = showAI;
-        $history = [...$history, { 
-          command: cmd, 
-          outputs: [showAI ? 'AI Assistant enabled. Use "ai persistent" to keep it open after commands.' : 'AI Assistant disabled.'] 
-        }];
-      }
+      showAI = true; // Always turn on, never turn off automatically
+      $history = [...$history, { 
+        command: cmd, 
+        outputs: ['🤖 AI Assistant activated! Unlimited usage enabled. Ask as many questions as you want!'] 
+      }];
       command = '';
       historyIndex = -1;
       return;
@@ -140,15 +113,8 @@
 
   function handleAICommand(event: CustomEvent) {
     executeCommand(event.detail);
-    // Don't auto-close AI if persistent mode is enabled
-    if (!aiPersistent) {
-      showAI = false;
-    }
-  }
-
-  function handleCloseAI() {
-    showAI = false;
-    aiPersistent = false;
+    // NEVER close AI automatically - let user decide
+    // showAI remains true always
   }
 </script>
 
@@ -160,10 +126,7 @@
 
 <div class="w-full">
   {#if showAI}
-    <AIInput 
-      on:execute-command={handleAICommand} 
-      on:close-ai={handleCloseAI}
-    />
+    <AIInput on:execute-command={handleAICommand} />
   {/if}
 
   <div class="flex w-full">
@@ -181,14 +144,14 @@
       bind:this={input}
       autocomplete="off"
       spellcheck="false"
-      placeholder={showAI ? "AI Assistant active - ask multiple questions!" : "Type 'ai' to enable AI assistant"}
+      placeholder={showAI ? "AI Assistant active - unlimited usage!" : "Type 'ai' to enable unlimited AI assistant"}
     />
   </div>
 
   <div class="text-xs mt-1 opacity-60" style={`color: ${$theme.gray};`}>
     💡 Press Ctrl+K for AI assistant | Tab for autocomplete | ↑↓ for history
     {#if showAI}
-      | AI: {aiPersistent ? 'Persistent Mode' : 'Single Use Mode'}
+      | 🤖 AI: Unlimited Mode Active
     {/if}
   </div>
 </div>
